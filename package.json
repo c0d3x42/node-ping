@@ -1,0 +1,15 @@
+{
+  "name": "node-ping",
+  "description": "fping wrapper for nodejs",
+  "version": "0.0.1",
+  "author": "Vince <c0d3x42@gmail.com>",
+  "homepage": "http://github.com/c0d3x42/node-ping",
+  "dependencies": {
+    "eventemitter2": ">= 0.4.1",
+    "async": ">= 0.1.10"
+  },
+  "keywords": ["ping", "fping", "icmp", "network" ],
+  "engines": { "node": ">= 0.4.12" },
+  "license": [ { "type": "GNU", "url": "http://www.gnu.org/licenses/gpl.txt" } ]
+}
+
