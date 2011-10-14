@@ -1,7 +1,7 @@
 
 inspect = require( 'sys' ).inspect;
 
-PingManager = require( './lib/index' );
+PingManager = require( './index' ).PingManager;
 
 var p = new PingManager();
 
