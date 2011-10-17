@@ -33,6 +33,10 @@ p.start( function()
       });
     }
   });
+  pinger.on( 'summary', function( mo )
+  {
+    console.log( "Summary: " + inspect( mo ) );
+  });
   pinger.start( p.fping_path );
   
 });
