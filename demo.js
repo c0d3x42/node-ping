@@ -1,42 +1,76 @@
 
-inspect = require( 'sys' ).inspect;
+var inspect = require( 'sys' ).inspect;
+var async = require( 'async' );
 
 PingManager = require( './index' ).PingManager;
+var ping_manager = new PingManager();
 
-var p = new PingManager();
-
-p.start( function()
+ping_manager.start( function()
 {
   var self = this;
-  var pinger = this.createPinger( 1000, ['localhost', '192.168.33.1', '127.0.0.1' ] );
 
-  var counter = 0;
-  pinger.on( 'ping', function( mo )
+  async.parallel(
   {
-    console.log( 'host: ' + mo.host + ' is ' + mo.state );
-
-    counter ++;
-    if( counter % 5 == 0 )
+    short_lived: function( cb )
     {
-      setTimeout( function()
+      var short_pinger = self.createPinger( 1000, ['localhost', '192.168.33.1', '127.0.0.1' ] );
+      var counter = 0;
+      short_pinger.on( 'ping', function( mo )
       {
-        pinger.restart( p.fping_path );
-      }, 2000 );
-    }
+        console.log( 'host: ' + mo.host + ' is ' + mo.state );
 
-    if( counter > 12 )
-    {
-      pinger.stop( function()
-      {
-        console.log( "shutting down" );
-        process.exit( 0 );
+        counter ++;
+        if( counter % 5 == 0 )
+        {
+          setTimeout( function()
+          {
+            short_pinger.restart( ping_manager.fping_path );
+          }, 2000 );
+        }
+
+        if( counter > 12 )
+        {
+          short_pinger.stop( function()
+          {
+            console.log( "shorter pinger stopped" );
+            cb( null, 'done' );
+          });
+        }
       });
+      short_pinger.on( 'summary', function( mo )
+      {
+        console.log( "Summary: " + inspect( mo ) );
+      });
+
+      short_pinger.start( ping_manager.fping_path );
+    },
+    loner_lived: function( cb ) 
+    {
+      var longer_pinger = self.createPinger( 1500, [ 'google.com', 'yahoo.com' ] );
+      var counter = 0;
+      longer_pinger.on( 'ping', function( mo )
+      {
+        console.log( 'host: ' + mo.host + ' is ' + mo.state );
+        counter++;
+
+        if( counter > 35 )
+        {
+          longer_pinger.stop( function()
+          {
+            console.log( 'longer pinger stopped' );
+            cb( null, 'done' );
+          });
+        }
+      });
+
+      longer_pinger.start( ping_manager.fping_path );
+
     }
-  });
-  pinger.on( 'summary', function( mo )
+  },
+  function( err, results )
   {
-    console.log( "Summary: " + inspect( mo ) );
+    console.log( "parallel pings: " + inspect( arguments ) );
+
   });
-  pinger.start( p.fping_path );
-  
 });
+    
