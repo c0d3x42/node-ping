@@ -13,7 +13,7 @@ ping_manager.start( function()
   {
     short_lived: function( cb )
     {
-      var short_pinger = self.createPinger( 1000, ['localhost', '192.168.33.1', '127.0.0.1' ] );
+      var short_pinger = self.createOnePinger( 1000, ['localhost', '192.168.33.1', '127.0.0.1' ] );
       var counter = 0;
       short_pinger.on( 'ping', function( mo )
       {
@@ -24,7 +24,7 @@ ping_manager.start( function()
         {
           setTimeout( function()
           {
-            short_pinger.restart( ping_manager.fping_path );
+            short_pinger.restart();
           }, 2000 );
         }
 
@@ -42,11 +42,11 @@ ping_manager.start( function()
         console.log( "Summary: " + inspect( mo ) );
       });
 
-      short_pinger.start( ping_manager.fping_path );
+      short_pinger.start();
     },
     loner_lived: function( cb ) 
     {
-      var longer_pinger = self.createPinger( 1500, [ 'google.com', 'yahoo.com' ] );
+      var longer_pinger = self.createOnePinger( 1500, [ 'google.com', 'yahoo.com' ] );
       var counter = 0;
       longer_pinger.on( 'ping', function( mo )
       {
@@ -64,6 +64,29 @@ ping_manager.start( function()
       });
 
       longer_pinger.start( ping_manager.fping_path );
+    },
+    another_pinger: function( cb ) 
+    {
+      var more_pingers = self.createPingers( [ 
+        { name: 'zen', interval: 2000 },
+        { name: 'google.com', interval: 3000 },
+        { name: 'yahoo.com', interval: 3000 },
+        { name: 'msn.com', interval: 3000 },
+        { name: 'slashdot.com', interval: 2000 } ] );
+
+      more_pingers.forEach( function( pinger )
+      {
+        var counter = 0;
+        pinger.on( 'ping', function( mo )
+        {
+          console.log( 'host: ' + mo.host + ' is ' + mo.state );
+          counter++;
+          if( counter > 20 )
+            pinger.stop( function() { cb( null, 'done' ); } );
+        });
+
+        pinger.start();
+      });
 
     }
   },
